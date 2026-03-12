@@ -17,7 +17,9 @@ Color colour(255, 126, 100);
 sf::Image prev_image;
 char last_load[128];
 
-float draw_density = 0.001f;
+float draw_density = 0.0002f;
+float start_angle = 0;
+float end_angle = 2*PI;
 
 
 int load_image(char* filepath){
@@ -112,23 +114,39 @@ int main(int argc, char** argv)
             return 0;
         }else if(!strcmp(operation, "help")){
             printf("\
-help\n\
+load        <filepath>      Loads from given filepath. Accepts bmp, png, tga, jpg, gif, psd, hdr, pic and pnm. Jpg without arithmetic encoding.\n\
+reload                      Reloads from last successfully loaded file, good for resetting.\n\
+save        <filepath>      Saves to given filepath.\n\
 \n\
-sx          Set target x\n\
-sy          Set target y\n\
-nx          Nudge target x\n\
-ny          Nudge target y\n\
-density     in scans per degree\n\
+sx          <int>           Set target x\n\
+sy          <int>           Set target y\n\
+nx          <int>           Nudge target x\n\
+ny          <int>           Nudge target y\n\
+density     <float>         of drawing in scans per degree\n\
+\n\
+setstart    <angle>         Sets start angle. In Degrees, as a bearing from North.\n\
+setend      <angle          Sets end angle. Likewise.\n\
+\n\
+r           <int>           Sets colour of drawing. Stored out of 255.\n\
+g           <int>           Likewise\n\
+b           <int>           Likewise\n\
+\n\
+draw                        Draw!\n\
+sketch                      Draw at a low density without having to change programmed density.\n\
+\n\
+redraw                      Redraws window.\n\
 exit\n\
-");
+\n");
 
         }else if(!strcmp(operation, "load")){
+            
             load_image(operand);
         }else if(!strcmp(operation, "reload")){
             if(last_load[0] == '\00'){printf("No last load to load from. Please use load <filepath>\n");}
             else{load_image(last_load);}
         
         }else if(!strcmp(operation, "save")){
+            printf("...");
             if( image.saveToFile(operand) ){
                 printf("Successfully saved image to `%s`.\n", operand);
             }
@@ -138,13 +156,19 @@ exit\n\
 
             image = prev_image;
 
-            printf("Undone!\n");
-
         }else if(!strcmp(operation, "redraw")){
         
         }else if(!strcmp(operation, "draw")){
             prev_image = image; // prepare for undo;
-            draw_sight(&image, target_x, target_y, 0, PI*2.0f, draw_density, colour);
+            draw_sight(&image, target_x, target_y, start_angle, end_angle, draw_density, colour);
+        }else if(!strcmp(operation, "sketch")){
+            prev_image = image;
+            draw_sight(&image, target_x, target_y, start_angle, end_angle, 0.002, colour);
+        
+        }else if(!strcmp(operation, "setstart")){
+            start_angle = PI / 180.0f * atof(operand);
+        }else if(!strcmp(operation, "setend")){
+            end_angle = PI / 180.0f * atof(operand);
         
         }else if(!strcmp(operation, "r")){
             colour.r = atoi(operand);

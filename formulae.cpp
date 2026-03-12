@@ -11,7 +11,7 @@ unsigned int map_size_y;
 
 void do_line(Image *image, Vector2u from, float angle ){
 
-    Vector2f driving_vector(sin(angle), cos(angle));
+    Vector2f driving_vector(sin(angle), -cos(angle));
 
     //printf("Vector: %3f, %3f.", driving_vector.x, driving_vector.y);
 
@@ -54,10 +54,11 @@ void do_line(Image *image, Vector2u from, float angle ){
 
 void do_lines(Image *image, Vector2u from, float angle_from, float angle_to, float increment){
     unsigned long int lines_to_draw = (int)(abs(angle_to - angle_from) / increment);
+    float iterating_sign = angle_from < angle_to ? 1.0f : -1.0f;
     for (unsigned long int i = 0; i<lines_to_draw; i++){
-        do_line(image, from, angle_from + (float)i*increment);
+        do_line(image, from, angle_from + (float)i*increment * iterating_sign);
 
-        printf("%.1f%% Done!\n", 100.0f * (float)i / (float)lines_to_draw); // progress
+        printf("%.1f%% Done!\r", 100.0f * (float)i / (float)lines_to_draw); // progress
     }
 }
 
@@ -85,7 +86,10 @@ void draw_sight(Image *image, int from_x, int from_y, float angle_from, float an
     memset(map, 0, map_size_x* map_size_y);
 
     do_lines(image, Vector2u(from_x, from_y), angle_from, angle_to, density);
+    printf("\n..."); // no \n in loading code.
     paint_image(image, colour);
 
     free(map);
+
+    printf("Finished!\n");
 }
