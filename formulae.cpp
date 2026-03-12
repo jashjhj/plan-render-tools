@@ -4,10 +4,10 @@
 
 using namespace sf;
 
-unsigned char colour_threshold = 100;
 char* map;
 unsigned int map_size_x;
 unsigned int map_size_y;
+unsigned char colour_threshold_local = 10;
 
 void do_line(Image *image, Vector2u from, float angle ){
 
@@ -18,10 +18,10 @@ void do_line(Image *image, Vector2u from, float angle ){
     Vector2u current_pos = from;
     Vector2f rel_pos(0.5, 0.5);
 
-    for(int i = 0; i < 8000; i++){
+    for(unsigned int i = 0; i < 100000; i++){
         Color current_colour = image->getPixel(current_pos.x, current_pos.y);
         float current_brightness = current_colour.r/3 + current_colour.g/3 + current_colour.b / 3;
-        if (current_brightness < colour_threshold){
+        if (current_brightness < colour_threshold_local){
             return; // if hit end of track.
         }
         
@@ -48,8 +48,6 @@ void do_line(Image *image, Vector2u from, float angle ){
         if(current_pos.y < 0){return;}
         else if (current_pos.y >= map_size_y){return;}
     }
-
-    return;
 }
 
 void do_lines(Image *image, Vector2u from, float angle_from, float angle_to, float increment){
@@ -79,11 +77,13 @@ void paint_image(Image *image, Color colour){
     }
 }
 
-void draw_sight(Image *image, int from_x, int from_y, float angle_from, float angle_to, float density, Color colour){
+void draw_sight(Image *image, int from_x, int from_y, float angle_from, float angle_to, float density, Color colour, unsigned char colour_thresh){
     map_size_x = image->getSize().x;
     map_size_y = image->getSize().y;
     map = (char*)malloc(map_size_x * map_size_y);
     memset(map, 0, map_size_x* map_size_y);
+
+    colour_threshold_local = colour_thresh;
 
     do_lines(image, Vector2u(from_x, from_y), angle_from, angle_to, density);
     printf("\n..."); // no \n in loading code.

@@ -17,6 +17,7 @@ Color colour(255, 126, 100);
 sf::Image prev_image;
 char last_load[128];
 
+unsigned char colour_threshold = 10;
 float draw_density = 0.0002f;
 float start_angle = 0;
 float end_angle = 2*PI;
@@ -126,7 +127,8 @@ getpos                      Returns current target pos\n\
 density     <float>         of drawing in scans per degree\n\
 \n\
 setstart    <angle>         Sets start angle. In Degrees, as a bearing from North.\n\
-setend      <angle          Sets end angle. Likewise.\n\
+setend      <angle>         Sets end angle. Likewise.\n\
+threshold   <int>           Sets low pass threshold that cancels the line. 0 is unstoppable, 255 is max. Default 10.\n\
 \n\
 r           <int>           Sets colour of drawing. Stored out of 255.\n\
 g           <int>           Likewise\n\
@@ -162,30 +164,32 @@ exit\n\
         
         }else if(!strcmp(operation, "draw")){
             prev_image = image; // prepare for undo;
-            draw_sight(&image, target_x, target_y, start_angle, end_angle, draw_density, colour);
+            draw_sight(&image, target_x, target_y, start_angle, end_angle, draw_density, colour, colour_threshold);
         }else if(!strcmp(operation, "sketch")){
             prev_image = image;
-            draw_sight(&image, target_x, target_y, start_angle, end_angle, 0.002, colour);
+            draw_sight(&image, target_x, target_y, start_angle, end_angle, 0.002, colour, colour_threshold);
         
         }else if(!strcmp(operation, "setstart")){
             start_angle = PI / 180.0f * atof(operand);
         }else if(!strcmp(operation, "setend")){
             end_angle = PI / 180.0f * atof(operand);
         
+        }else if(!strcmp(operation, "threshold")){
+            colour_threshold = atoi(operand);
         }else if(!strcmp(operation, "r")){
             colour.r = atoi(operand);
             target.setFillColor(colour);
-            printf("New colour set to rgb %d %d %d.\n", colour.r, colour.g, colour.b);
+            //printf("New colour set to rgb %d %d %d.\n", colour.r, colour.g, colour.b);
 
         }else if(!strcmp(operation, "g")){
             colour.g = atoi(operand);
             target.setFillColor(colour);
-            printf("New colour set to rgb %d %d %d.\n", colour.r, colour.g, colour.b);
+            //printf("New colour set to rgb %d %d %d.\n", colour.r, colour.g, colour.b);
 
         }else if(!strcmp(operation, "b")){
             colour.b = atoi(operand);
             target.setFillColor(colour);
-            printf("New colour set to rgb %d %d %d.\n", colour.r, colour.g, colour.b);
+            //printf("New colour set to rgb %d %d %d.\n", colour.r, colour.g, colour.b);
 
         }else if(!strcmp(operation, "getcolour")){
             printf("Colour = %dr %dg %db.\n", colour.r, colour.g, colour.b);
