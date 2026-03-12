@@ -122,6 +122,7 @@ sx          <int>           Set target x\n\
 sy          <int>           Set target y\n\
 nx          <int>           Nudge target x\n\
 ny          <int>           Nudge target y\n\
+getpos                      Returns current target pos\n\
 density     <float>         of drawing in scans per degree\n\
 \n\
 setstart    <angle>         Sets start angle. In Degrees, as a bearing from North.\n\
@@ -130,6 +131,7 @@ setend      <angle          Sets end angle. Likewise.\n\
 r           <int>           Sets colour of drawing. Stored out of 255.\n\
 g           <int>           Likewise\n\
 b           <int>           Likewise\n\
+getcolour                   Returns current colour\n\
 \n\
 draw                        Draw!\n\
 sketch                      Draw at a low density without having to change programmed density.\n\
@@ -185,6 +187,8 @@ exit\n\
             target.setFillColor(colour);
             printf("New colour set to rgb %d %d %d.\n", colour.r, colour.g, colour.b);
 
+        }else if(!strcmp(operation, "getcolour")){
+            printf("Colour = %dr %dg %db.\n", colour.r, colour.g, colour.b);
         
 
         }else if(!strcmp(operation, "sx")){
@@ -199,6 +203,9 @@ exit\n\
         }else if(!strcmp(operation, "ny")){
             target_y += atoi(operand);
             target.setPosition(image_scale * sf::Vector2f(target_x, target_y));
+
+        }else if(!strcmp(operation, "getpos")){
+            printf("Target position: (%d, %d)\n", target_x, target_y);
         }else if(!strcmp(operation, "density")){
             draw_density = PI / (180 *float(atof(operand)));
             printf("Draw density set to %f scanlinesper degree.\n", atof(operand));
