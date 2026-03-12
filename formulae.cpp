@@ -4,8 +4,7 @@
 
 using namespace sf;
 
-float colour_threshold = 0.3;
-Color colour(1.0, 0.5, 0.5);
+unsigned char colour_threshold = 100;
 char* map;
 unsigned int map_size_x;
 unsigned int map_size_y;
@@ -21,7 +20,7 @@ void do_line(Image *image, Vector2u from, float angle ){
 
     for(int i = 0; i < 8000; i++){
         Color current_colour = image->getPixel(current_pos.x, current_pos.y);
-        float current_brightness = (current_colour.r + current_colour.g + current_colour.b) / 3.0f;
+        float current_brightness = current_colour.r/3 + current_colour.g/3 + current_colour.b / 3;
         if (current_brightness < colour_threshold){
             return; // if hit end of track.
         }
@@ -58,30 +57,35 @@ void do_lines(Image *image, Vector2u from, float angle_from, float angle_to, flo
     for (unsigned long int i = 0; i<lines_to_draw; i++){
         do_line(image, from, angle_from + (float)i*increment);
 
-        printf("%4f %%Done!\n", 100.0f * (float)i / (float)lines_to_draw); // progress
+        printf("%.1f%% Done!\n", 100.0f * (float)i / (float)lines_to_draw); // progress
     }
 }
 
-void paint_image(Image *image){
+void paint_image(Image *image, Color colour){
     for(unsigned int y = 0; y < map_size_y; y++){
         for(unsigned int x = 0; x<map_size_x; x++){
             if(map[map_size_x*y + x] != 0){
                 Color local_colour = image->getPixel(x, y);
-                Color new_colour = Color(local_colour.r * colour.r, local_colour.g * colour.g, local_colour.b * colour.b);
+                Color new_colour(
+                    (char)((float)local_colour.r * (float)colour.r  * (1.0f/(256.0f))),
+                    (char)((float)local_colour.g * (float)colour.g  * (1.0f/(256.0f))),
+                    (char)((float)local_colour.b * (float)colour.b  * (1.0f/(256.0f)))
+                );
+                
                 image->setPixel(x,y, new_colour); // paint if map is set!
             }
         }
     }
 }
 
-void draw_sight(Image *image, int from_x, int from_y, float angle_from, float angle_to, float density = 0.01){
+void draw_sight(Image *image, int from_x, int from_y, float angle_from, float angle_to, float density, Color colour){
     map_size_x = image->getSize().x;
     map_size_y = image->getSize().y;
     map = (char*)malloc(map_size_x * map_size_y);
     memset(map, 0, map_size_x* map_size_y);
 
     do_lines(image, Vector2u(from_x, from_y), angle_from, angle_to, density);
-    paint_image(image);
+    paint_image(image, colour);
 
     free(map);
 }

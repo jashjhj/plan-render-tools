@@ -12,16 +12,17 @@ sf::Image image;
 int image_size_x = 1;
 int image_size_y = 1;
 
+Color colour(255, 126, 100);
+
 sf::Image prev_image;
 char last_load[128];
 
-float draw_density = 0.01f;
+float draw_density = 0.001f;
 
 
 int load_image(char* filepath){
     if (!image.loadFromFile(filepath))
     {
-        printf("Failed to load image. Usage: ./cmd filepath\n");
         return 100;
     }
 
@@ -46,7 +47,7 @@ void set_sprite_scale(sf::Sprite* sprite){
 
 int main(int argc, char** argv)
 {
-    sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "SFML works!");
+    sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "Scanline Computer");
 
     sf::Texture texture;
     if (argc == 2){
@@ -62,8 +63,13 @@ int main(int argc, char** argv)
     while (true){
 
 
+        
+        
         sf::Texture texture;
-        texture.loadFromImage(image);
+        
+        if(!texture.loadFromImage(image)){
+            printf("Load image using `load <filepath>`\n");
+        };
         sf::Sprite sprite;
         sprite.setTexture(texture);
         set_sprite_scale(&sprite);
@@ -119,17 +125,43 @@ exit\n\
         }else if(!strcmp(operation, "load")){
             load_image(operand);
         }else if(!strcmp(operation, "reload")){
-            if(last_load[0] == '\00'){printf("No last load to load from. Please use load <filepath>");}
+            if(last_load[0] == '\00'){printf("No last load to load from. Please use load <filepath>\n");}
             else{load_image(last_load);}
+        
+        }else if(!strcmp(operation, "save")){
+            if( image.saveToFile(operand) ){
+                printf("Successfully saved image to `%s`.\n", operand);
+            }
+
+        
         }else if(!strcmp(operation, "undo")){
 
             image = prev_image;
+
+            printf("Undone!\n");
 
         }else if(!strcmp(operation, "redraw")){
         
         }else if(!strcmp(operation, "draw")){
             prev_image = image; // prepare for undo;
-            draw_sight(&image, target_x, target_y, 0, PI*2.0f, draw_density);
+            draw_sight(&image, target_x, target_y, 0, PI*2.0f, draw_density, colour);
+        
+        }else if(!strcmp(operation, "r")){
+            colour.r = atoi(operand);
+            target.setFillColor(colour);
+            printf("New colour set to rgb %d %d %d.\n", colour.r, colour.g, colour.b);
+
+        }else if(!strcmp(operation, "g")){
+            colour.g = atoi(operand);
+            target.setFillColor(colour);
+            printf("New colour set to rgb %d %d %d.\n", colour.r, colour.g, colour.b);
+
+        }else if(!strcmp(operation, "b")){
+            colour.b = atoi(operand);
+            target.setFillColor(colour);
+            printf("New colour set to rgb %d %d %d.\n", colour.r, colour.g, colour.b);
+
+        
 
         }else if(!strcmp(operation, "sx")){
             target_x = atoi(operand);
