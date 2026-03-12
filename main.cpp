@@ -2,8 +2,11 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "formulae.cpp"
+
 #define HEIGHT 1000
 #define WIDTH 1000
+#define PI 3.14156
 
 sf::Image image;
 int image_size_x = 1;
@@ -24,10 +27,12 @@ int load_image(char* filepath){
     return 0;
 }
 
+float image_scale;
 void set_sprite_scale(sf::Sprite* sprite){
     float h_ratio = (float)WIDTH/(float)image_size_x;
     float w_ratio = (float)HEIGHT/(float)image_size_y;
     float ratio = h_ratio < w_ratio ? h_ratio : w_ratio; // picks smaller ratio of the two
+    image_scale = ratio;
     sprite->setScale(sf::Vector2f(ratio, ratio));
 }
 
@@ -105,18 +110,21 @@ int main(int argc, char** argv)
             load_image(operand);
         }else if(!strcmp(operation, "redraw")){
         
+        }else if(!strcmp(operation, "draw")){
+            draw_sight(&image, target_x, target_y, 0, PI*2.0f);
+
         }else if(!strcmp(operation, "sx")){
             target_x = atoi(operand);
-            target.setPosition(sf::Vector2f(target_x, target_y));
+            target.setPosition(image_scale * sf::Vector2f(target_x, target_y));
         }else if(!strcmp(operation, "sy")){
             target_y = atoi(operand);
-            target.setPosition(sf::Vector2f(target_x, target_y));
+            target.setPosition(image_scale * sf::Vector2f(target_x, target_y));
         }else if(!strcmp(operation, "nx")){
             target_x += atoi(operand);
-            target.setPosition(sf::Vector2f(target_x, target_y));
+            target.setPosition(image_scale * sf::Vector2f(target_x, target_y));
         }else if(!strcmp(operation, "ny")){
             target_y += atoi(operand);
-            target.setPosition(sf::Vector2f(target_x, target_y));
+            target.setPosition(image_scale * sf::Vector2f(target_x, target_y));
         
         }else{
             printf("Invalid command: %s\n", operation);
