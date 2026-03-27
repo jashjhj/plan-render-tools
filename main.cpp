@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "formulae.cpp"
+#include "render.h"
 
 #define HEIGHT 1000
 #define WIDTH 1000
@@ -18,10 +19,12 @@ sf::Image prev_image;
 char last_load[128];
 
 unsigned char colour_threshold = 10;
+///Measured in the increment in rads fromn one line to the next.
 float draw_density = 0.0002f;
 float start_angle = 0;
 float end_angle = 2*PI;
 
+float* distance_map;
 
 int load_image(char* filepath){
     if (!image.loadFromFile(filepath))
@@ -48,8 +51,8 @@ void set_sprite_scale(sf::Sprite* sprite){
 
 
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv){
+
     sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "Scanline Computer");
 
     sf::Texture texture;
@@ -62,6 +65,7 @@ int main(int argc, char** argv)
     sf::CircleShape target(4.0f);
     target.setFillColor(colour);
     target.setOrigin(sf::Vector2f(2.0f, 2.0f));
+    distance_map = (float*)malloc(sizeof(float));
 
     while (true){
 
@@ -115,30 +119,31 @@ int main(int argc, char** argv)
             return 0;
         }else if(!strcmp(operation, "help")){
             printf("\
-load        <filepath>      Loads from given filepath. Accepts bmp, png, tga, jpg, gif, psd, hdr, pic and pnm. Jpg without arithmetic encoding.\n\
-reload                      Reloads from last successfully loaded file, good for resetting.\n\
-save        <filepath>      Saves to given filepath.\n\
+load            <filepath>      Loads from given filepath. Accepts bmp, png, tga, jpg, gif, psd, hdr, pic and pnm. Jpg without arithmetic encoding.\n\
+reload                          Reloads from last successfully loaded file, good for resetting.\n\
+save            <filepath>      Saves to given filepath.\n\
+saveperspective <filepath>  Saves a perspective template to given filepath.\n\
 \n\
-sx          <int>           Set target x\n\
-sy          <int>           Set target y\n\
-nx          <int>           Nudge target x\n\
-ny          <int>           Nudge target y\n\
-getpos                      Returns current target pos\n\
-density     <float>         of drawing in scans per degree\n\
+sx              <int>           Set target x\n\
+sy              <int>           Set target y\n\
+nx              <int>           Nudge target x\n\
+ny              <int>           Nudge target y\n\
+getpos                          Returns current target pos\n\
+density         <float>         of drawing in scans per degree\n\
 \n\
-setstart    <angle>         Sets start angle. In Degrees, as a bearing from North.\n\
-setend      <angle>         Sets end angle. Likewise.\n\
-threshold   <int>           Sets low pass threshold that cancels the line. 0 is unstoppable, 255 is max. Default 10.\n\
+setstart        <angle>         Sets start angle. In Degrees, as a bearing from North.\n\
+setend          <angle>         Sets end angle. Likewise.\n\
+threshold       <int>           Sets low pass threshold that cancels the line. 0 is unstoppable, 255 is max. Default 10.\n\
 \n\
-r           <int>           Sets colour of drawing. Stored out of 255.\n\
-g           <int>           Likewise\n\
-b           <int>           Likewise\n\
-getcolour                   Returns current colour\n\
+r               <int>           Sets colour of drawing. Stored out of 255.\n\
+g               <int>           Likewise\n\
+b               <int>           Likewise\n\
+getcolour                       Returns current colour\n\
 \n\
-draw                        Draw!\n\
-sketch                      Draw at a low density without having to change programmed density.\n\
+draw                            Draw!\n\
+sketch                          Draw at a low density without having to change programmed density.\n\
 \n\
-redraw                      Redraws window.\n\
+redraw                          Redraws window.\n\
 exit\n\
 \n");
 
@@ -153,6 +158,16 @@ exit\n\
             printf("...");
             if( image.saveToFile(operand) ){
                 printf("Successfully saved image to `%s`.\n", operand);
+            }else{
+                printf("Failed to save image.\n");
+            }
+        }else if(!strcmp(operation, "saveperspective")){
+            printf("...");
+            Image drawing = render::draw(distance_map, abs(end_angle-start_angle));
+            if( drawing.saveToFile(operand) ){
+                printf("Successfully saved perspective sketch to `%s`.\n", operand);
+            }else{
+                printf("Failed to save Perspective Sketch.\n");
             }
 
         
@@ -164,10 +179,12 @@ exit\n\
         
         }else if(!strcmp(operation, "draw")){
             prev_image = image; // prepare for undo;
-            draw_sight(&image, target_x, target_y, start_angle, end_angle, draw_density, colour, colour_threshold);
+            free(distance_map);
+            distance_map = draw_sight(&image, target_x, target_y, start_angle, end_angle, draw_density, colour, colour_threshold);
         }else if(!strcmp(operation, "sketch")){
             prev_image = image;
-            draw_sight(&image, target_x, target_y, start_angle, end_angle, 0.002, colour, colour_threshold);
+            free(distance_map);
+            distance_map = draw_sight(&image, target_x, target_y, start_angle, end_angle, 0.002, colour, colour_threshold);
         
         }else if(!strcmp(operation, "setstart")){
             start_angle = PI / 180.0f * atof(operand);
